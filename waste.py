@@ -6,14 +6,18 @@ from dotenv import load_dotenv
 import os
 import openai
 import json
-# from config import OPENAI_API_KEY
-# import openai
-# from flask import Flask, render_template
+from flask_ckeditor import CKEditor
+from flask import Flask, render_template
+
 
 # -*- coding: utf-8 -*-
 
+
+
 load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
+app=Flask(__name__)
+ckeditor=CKEditor(app)
 
 
 # def load_api_key(secrets_file="secrets.json"):
