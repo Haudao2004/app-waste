@@ -1,8 +1,9 @@
 tensorflow-cpu
 numpy
 pillow
-streamlit
-openai
+streamlit 
+openai==0.28
 python-dotenv
 keras
 json
+tensorflow 

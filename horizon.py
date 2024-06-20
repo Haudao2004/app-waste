@@ -6,41 +6,25 @@ from dotenv import load_dotenv
 import os
 import openai
 import json
-from flask_ckeditor import CKEditor
-from flask import Flask, render_template
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+import tensorflow as tf
 
 
-# -*- coding: utf-8 -*-
 
 
 
 load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
-app=Flask(__name__)
-ckeditor=CKEditor(app)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
-# def load_api_key(secrets_file="secrets.json"):
-#     with open(secrets_file) as f:
-#         secrets = json.load(f)
-#     return secrets["OPENAI_API_KEY"]
-
-# # Set secret API key
-# # Typically, we'd use an environment variable (e.g., echo "export OPENAI_API_KEY='yourkey'" >> ~/.zshrc)
-# # However, using "internalConsole" in launch.json requires setting it in the code for compatibility with Hebrew
-# api_key = load_api_key()
-# openai.api_key = api_key
-
+model = load_model ("keras_model.h5", compile=False)
+with open("labels.txt", "r") as f:
+    class_names = f.readlines()
 
 def classify_waste(img):
    
     np.set_printoptions(suppress=True)
-
-    model = load_model("keras_model.h5", compile=False)
-    # model_name = "gpt2"  
-    # tokenizer = GPT2Tokenizer.from_pretrained(model_name)
-    # model = GPT2LMHeadModel.from_pretrained(model_name)
-    class_names = open("labels.txt", "r").readlines()
   
     data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
         
@@ -55,13 +39,15 @@ def classify_waste(img):
    
     data[0] = normalized_image_array
 
-    # Predicts the model
+    # dự đoán model
     prediction = model.predict(data)
     index = np.argmax(prediction)
     class_name = class_names[index]
     confidence_score = prediction[0][index]
 
     return class_name, confidence_score
+
+
 def generate_carbon_footprint_info(label):
     label = label.split(' ')[1]
     cache_file = "carbon_footprint_cache.json"
@@ -103,21 +89,6 @@ def generate_carbon_footprint_info(label):
     return result
 
 
-# def generate_carbon_footprint_info(label):
-#     label = label.split(' ')[1]
-#     print(label)
-#     response = openai.ChatCompletion.create(
-#     model="gpt-3.5-turbo-instruct",
-#     prompt="Lượng phát thải cacbon hoặc lượng khí thải cacbon gần đúng được tạo ra từ "+label+
-#     "? Tôi chỉ cần một con số gần đúng để tạo ra nhận thức. Xây dựng trong 100 từ.\n",
-#     temperature=0.7,
-#     max_tokens=600,
-#     top_p=1,
-#     frequency_penalty=0,
-#     presence_penalty=0
-#     )
-#     return response['choices'][0]['text']
-
 
 st.set_page_config(layout='wide')
 
@@ -155,6 +126,7 @@ if input_img is not None:
                 with col5:
                     st.image("sdg goals/14.png", use_column_width=True)
                     st.image("sdg goals/15.png", use_column_width=True) 
+        
             elif label == "2 glass\n":
                 st.success("Hình ảnh được phân loại là GLASS.")
                 with col4:
